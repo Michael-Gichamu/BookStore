@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import express from 'express';
 import { Book } from '../models/bookModel.js';
 
-const router = Router();
+const router = express.Router();
 
-// Route to create a new Book
+// Route for Save a new Book
 router.post('/', async (request, response) => {
   try {
     if (
@@ -12,17 +12,17 @@ router.post('/', async (request, response) => {
       !request.body.publishYear
     ) {
       return response.status(400).send({
-        message: 'Send all required fields: author, title, publisheYear',
+        message: 'Send all required fields: title, author, publishYear',
       });
     }
-
-    const newBook = new Book({
+    const newBook = {
       title: request.body.title,
       author: request.body.author,
       publishYear: request.body.publishYear,
-    });
+    };
 
     const book = await Book.create(newBook);
+
     return response.status(201).send(book);
   } catch (error) {
     console.log(error.message);
@@ -30,20 +30,22 @@ router.post('/', async (request, response) => {
   }
 });
 
-// Route to get all 
+// Route for Get All Books from database
 router.get('/', async (request, response) => {
   try {
     const books = await Book.find({});
+
     return response.status(200).json({
       count: books.length,
       data: books,
     });
   } catch (error) {
-    return response.status(500).send({ message: error.message });
+    console.log(error.message);
+    response.status(500).send({ message: error.message });
   }
 });
 
-// Route to get a single book
+// Route for Get One Book from database by id
 router.get('/:id', async (request, response) => {
   try {
     const { id } = request.params;
@@ -57,7 +59,7 @@ router.get('/:id', async (request, response) => {
   }
 });
 
-// Route to update a book
+// Route for Update a Book
 router.put('/:id', async (request, response) => {
   try {
     if (
@@ -65,8 +67,8 @@ router.put('/:id', async (request, response) => {
       !request.body.author ||
       !request.body.publishYear
     ) {
-      return response.state(400).send({
-        message: 'Send all required fields: author, title, publishYear',
+      return response.status(400).send({
+        message: 'Send all required fields: title, author, publishYear',
       });
     }
 
@@ -75,18 +77,17 @@ router.put('/:id', async (request, response) => {
     const result = await Book.findByIdAndUpdate(id, request.body);
 
     if (!result) {
-      return response.status(404).send({ message: 'Book not found' });
+      return response.status(404).json({ message: 'Book not found' });
     }
 
     return response.status(200).send({ message: 'Book updated successfully' });
-
   } catch (error) {
     console.log(error.message);
     response.status(500).send({ message: error.message });
   }
 });
 
-// Route to delete a book
+// Route for Delete a book
 router.delete('/:id', async (request, response) => {
   try {
     const { id } = request.params;
@@ -94,7 +95,7 @@ router.delete('/:id', async (request, response) => {
     const result = await Book.findByIdAndDelete(id);
 
     if (!result) {
-      return response.status(404).send({ message: 'Book not found' });
+      return response.status(404).json({ message: 'Book not found' });
     }
 
     return response.status(200).send({ message: 'Book deleted successfully' });
